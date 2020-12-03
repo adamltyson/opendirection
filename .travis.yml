@@ -1,0 +1,34 @@
+language: python
+python:
+  - "3.6"
+  - "3.7"
+# python 3.8 not supported until pycircstat support newer versions of scipy
+#  - "3.8"
+
+
+dist: xenial # 16.04
+
+before_install:
+  - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda update -q --yes conda
+  - conda config --set always_yes yes --set changeps1 no
+  - conda info -a
+
+install:
+  - conda create -n opendirection python=$TRAVIS_PYTHON_VERSION
+  - source activate opendirection
+  - pip install ./
+  - conda info -a
+
+script:
+  - opendirection -h
+
+notifications:
+  email:
+    recipients:
+    - adam.tyson@ucl.ac.uk
+    on_success: always
+    on_failure: always
