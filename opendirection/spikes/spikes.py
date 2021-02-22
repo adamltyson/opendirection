@@ -58,8 +58,13 @@ def real_time(df, num_behaviour_measurements, camera_hz, probe_hz):
     bin_start = 0.5 * (1 / camera_hz)
     bin_end = bin_start + (num_behaviour_measurements / camera_hz)
     bin_range = np.arange(bin_start, bin_end, (1 / camera_hz))
-    label_end = num_behaviour_measurements / camera_hz
-    label_range = np.arange((1 / camera_hz), label_end, (1 / camera_hz))
+    # label_end = num_behaviour_measurements / camera_hz
+    # label_range = np.arange((1 / camera_hz), label_end, (1 / camera_hz))
+
+    # get midpoints of bins as labels
+    label_range = bin_range + bin_start
+    label_range = label_range[0:-1]
+
     df["time_bin"] = pd.cut(df["time_bin"], bin_range, labels=label_range)
     df.time_bin = df.time_bin.to_numpy()
     df = df[np.isfinite(df["time_bin"])]
