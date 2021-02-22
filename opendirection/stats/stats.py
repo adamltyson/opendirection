@@ -530,7 +530,7 @@ class VelocityStats:
             correlation_mag_force=correlation_mag_force,
         )
 
-    def get_fit(self, all_cells, idx, degree=1):
+    def get_fit(self,idx, all_cells, degree=1):
         coef = np.polyfit(all_cells.velocity_centers_in_range,
                           all_cells.velocity_cell_spikes_freq[idx],
                           degree)
