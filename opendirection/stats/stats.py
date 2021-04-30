@@ -468,10 +468,13 @@ class VelocityStats:
         self.velocity_pearson_r = []
         self.velocity_pearson_p = []
         self.pearson_percentile = []
+        self.velocity_fit_intercept = []
+        self.velocity_fit_slope = []
 
         idx = get_idx(cell_specific_data, cell_name)
 
         self.get_correlations(idx, cell_specific_data)
+        self.get_fit(idx, cell_specific_data)
 
         if options.velocity_shuffle_test:
             self.get_velocity_cell_sig(
@@ -492,6 +495,7 @@ class VelocityStats:
             all_cells.velocity_centers_in_range,
             all_cells.velocity_cell_spikes_freq[idx],
         )
+
 
     def get_velocity_cell_sig(
         self,
@@ -525,6 +529,14 @@ class VelocityStats:
             parallel=parallel,
             correlation_mag_force=correlation_mag_force,
         )
+
+    def get_fit(self,idx, all_cells, degree=1):
+        coef = np.polyfit(all_cells.velocity_centers_in_range,
+                          all_cells.velocity_cell_spikes_freq[idx],
+                          degree)
+
+        self.velocity_fit_intercept = coef[1]
+        self.velocity_fit_slope = coef[0]
 
 
 class PlaceStats:
