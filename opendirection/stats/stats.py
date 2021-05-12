@@ -496,7 +496,6 @@ class VelocityStats:
             all_cells.velocity_cell_spikes_freq[idx],
         )
 
-
     def get_velocity_cell_sig(
         self,
         all_cells,
@@ -530,10 +529,12 @@ class VelocityStats:
             correlation_mag_force=correlation_mag_force,
         )
 
-    def get_fit(self,idx, all_cells, degree=1):
-        coef = np.polyfit(all_cells.velocity_centers_in_range,
-                          all_cells.velocity_cell_spikes_freq[idx],
-                          degree)
+    def get_fit(self, idx, all_cells, degree=1):
+        coef = np.polyfit(
+            all_cells.velocity_centers_in_range,
+            all_cells.velocity_cell_spikes_freq[idx],
+            degree,
+        )
 
         self.velocity_fit_intercept = coef[1]
         self.velocity_fit_slope = coef[0]

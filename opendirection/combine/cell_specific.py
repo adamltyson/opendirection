@@ -164,18 +164,30 @@ class CellSpecific:
 
         for cell in self.cell_list:
             logging.debug("Calculating firing rates for {}".format(cell))
-            spike_freq = spike_tools.binned_spikes_from_train(
-                df[cell],
-                self.velocity_centers_in_range,
+            spike_freq = self.bin_spike_trains(
+                df,
+                cell,
                 velocity.bin_size,
-                df[query],
-                bin_times_in_range=self.velocity_bin_times_in_range,
+                sanitise_values=sanitise_values,
+                query=query,
             )
-            if sanitise_values:
-                spike_freq = sanitise_array(
-                    spike_freq, extreme_multiplier=10 ** 10
-                )
             self.velocity_cell_spikes_freq.append(spike_freq)
+
+    def bin_spike_trains(
+        self, df, cell, bin_size, sanitise_values=True, query="total_speed"
+    ):
+        spike_freq = spike_tools.binned_spikes_from_train(
+            df[cell],
+            self.velocity_centers_in_range,
+            bin_size,
+            df[query],
+            bin_times_in_range=self.velocity_bin_times_in_range,
+        )
+        if sanitise_values:
+            spike_freq = sanitise_array(
+                spike_freq, extreme_multiplier=10 ** 10
+            )
+        return spike_freq
 
     def get_place_firing_bins(
         self, df, place, sanitise_values=True, min_time_in_spatial_bin=0
