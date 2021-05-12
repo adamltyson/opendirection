@@ -8,7 +8,7 @@ import opendirection.combine.cell_select as cell_select
 
 
 class ConditionAnalyse:
-    def __init__(self, total_df, condition, config, options):
+    def __init__(self, total_df, condition, config, options, stability):
         self.name = condition
         self.colors = []
 
@@ -21,11 +21,11 @@ class ConditionAnalyse:
         self.all_data = []
         self.cell_list = []
 
-        self.cell_agnostic(total_df, config, options)
+        self.cell_agnostic(total_df, config, options, stability)
 
-    def cell_agnostic(self, df, config, options):
+    def cell_agnostic(self, df, config, options, stability):
         # Runs before cell list is calculated.
-        self.select_condition(df, config.conditions)
+        self.select_condition(df, config.conditions, stability)
         self.get_condition_specific_cell_agnostic(config, options)
         self.get_cell_list(options)
 
@@ -36,9 +36,9 @@ class ConditionAnalyse:
         self.get_cell_specific_data(options)
         self.get_cell_specific_stats(options, config)
 
-    def select_condition(self, df, conditions):
+    def select_condition(self, df, conditions, stability):
         self.all_data = condition_select.condition_select(
-            df, conditions, self.name
+            df, conditions, self.name, stability=stability
         )
 
     def get_condition_specific_cell_agnostic(self, config, options):

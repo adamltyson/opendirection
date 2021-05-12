@@ -1,6 +1,8 @@
 import logging
 import os.path
 import matplotlib.pyplot as plt
+import scipy.stats as stats
+
 from pathlib import Path
 from datetime import datetime
 from fancylog import fancylog
@@ -12,7 +14,16 @@ def main():
     config_path = os.path.join(str(Path(__file__).parents[1]), "options")
 
     args, options, config = run.setup(config_path)
-    conditions, total_df = run.analysis(args, options, config)
+    conditions, total_df = run.analysis(args, options, config, stability=None)
+    conditions_first, _ = run.analysis(
+        args, options, config, stability="first"
+    )
+    conditions_last, _ = run.analysis(args, options, config, stability="last")
+
+    (
+        condition_velocity_correlations,
+        condition_ahv_correlations,
+    ) = stability_calcs(conditions_first, conditions_last)
 
     if args.save:
         save_dfs = {}
@@ -48,6 +59,44 @@ def main():
                 condition_name=condition.name,
             )
     plt.show()
+
+
+def stability_calcs(conditions_first, conditions_last):
+    condition_velocity_correlations = []
+    condition_ahv_correlations = []
+
+    for idx, condition in enumerate(conditions_first):
+
+        velocity_correlations = []
+        ahv_correlations = []
+
+        for cell_id, cell in enumerate(condition.cell_list):
+            velocity_correlations.append(
+                stats.pearsonr(
+                    conditions_first[
+                        idx
+                    ].cell_specific_data.velocity_cell_spikes_freq[cell_id],
+                    conditions_last[
+                        idx
+                    ].cell_specific_data.velocity_cell_spikes_freq[cell_id],
+                )
+            )
+
+            ahv_correlations.append(
+                stats.pearsonr(
+                    conditions_first[
+                        idx
+                    ].cell_specific_data.ahv_cell_spikes_freq[cell_id],
+                    conditions_last[
+                        idx
+                    ].cell_specific_data.ahv_cell_spikes_freq[cell_id],
+                )
+            )
+
+        condition_velocity_correlations.append(velocity_correlations)
+        condition_ahv_correlations.append(ahv_correlations)
+
+    return condition_velocity_correlations, condition_ahv_correlations
 
 
 if __name__ == "__main__":

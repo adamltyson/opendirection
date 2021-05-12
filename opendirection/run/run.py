@@ -84,13 +84,15 @@ def load_align_data(args, options, config):
     return total_df
 
 
-def analysis(args, options, config):
+def analysis(args, options, config, stability=None):
 
     total_df = load_align_data(args, options, config)
 
     # Initialise conditions class
     conditions = [
-        analyse.ConditionAnalyse(total_df, condition, config, options)
+        analyse.ConditionAnalyse(
+            total_df, condition, config, options, stability=stability
+        )
         for condition in options.conditions_list
     ]
 
