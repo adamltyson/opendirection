@@ -342,6 +342,15 @@ class AHVStats:
         self.ahv_fit_slope_pos = []
         self.pearson_neg_percentile = []
         self.pearson_pos_percentile = []
+        self.ahv_stability_index = []
+        self.ahv_r_percentile_first_half_neg = []
+        self.ahv_r_percentile_first_half_pos = []
+        self.ahv_r_percentile_second_half_neg = []
+        self.ahv_r_percentile_second_half_pos = []
+        self.ahv_pearson_r_first_half_neg = []
+        self.ahv_pearson_r_first_half_pos = []
+        self.ahv_pearson_r_second_half_neg = []
+        self.ahv_pearson_r_second_half_pos = []
 
         idx = get_idx(cell_specific_data, cell_name)
 
@@ -470,6 +479,11 @@ class VelocityStats:
         self.pearson_percentile = []
         self.velocity_fit_intercept = []
         self.velocity_fit_slope = []
+        self.velocity_stability_index = []
+        self.velocity_r_percentile_first_half = []
+        self.velocity_r_percentile_second_half = []
+        self.velocity_pearson_r_first_half = []
+        self.velocity_pearson_r_second_half = []
 
         idx = get_idx(cell_specific_data, cell_name)
 

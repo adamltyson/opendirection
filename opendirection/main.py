@@ -14,16 +14,11 @@ def main():
     config_path = os.path.join(str(Path(__file__).parents[1]), "options")
 
     args, options, config = run.setup(config_path)
-    conditions, total_df = run.analysis(args, options, config, stability=None)
-    conditions_first, _ = run.analysis(
-        args, options, config, stability="first"
-    )
-    conditions_last, _ = run.analysis(args, options, config, stability="last")
+    logging.info("Running full analysis of each condition")
+    conditions, total_df = run.analysis(args, options, config)
 
-    (
-        condition_velocity_correlations,
-        condition_ahv_correlations,
-    ) = stability_calcs(conditions_first, conditions_last)
+    if options.stability:
+        conditions = run_stability_analyses(args, options, config, conditions)
 
     if args.save:
         save_dfs = {}
@@ -59,6 +54,21 @@ def main():
                 condition_name=condition.name,
             )
     plt.show()
+
+
+def run_stability_analyses(args, options, config, conditions):
+    logging.info("Running analysis on first half of each condition")
+    conditions_first, _ = run.analysis(
+        args, options, config, stability="first"
+    )
+
+    logging.info("Running analysis on second half of each condition")
+    conditions_last, _ = run.analysis(args, options, config, stability="last")
+
+    conditions = add_stability_indices(
+        conditions, conditions_first, conditions_last
+    )
+    return conditions
 
 
 def stability_calcs(conditions_first, conditions_last):
@@ -97,6 +107,99 @@ def stability_calcs(conditions_first, conditions_last):
         condition_ahv_correlations.append(ahv_correlations)
 
     return condition_velocity_correlations, condition_ahv_correlations
+
+
+def add_stability_indices(conditions, conditions_first, conditions_last):
+    (
+        condition_velocity_correlations,
+        condition_ahv_correlations,
+    ) = stability_calcs(conditions_first, conditions_last)
+
+    for idx, condition in enumerate(conditions):
+        # r is first output of stats.pearsonr
+        for cell_id, cell in enumerate(condition.cell_specific_stats):
+            # ahv
+            cell.ahv.ahv_stability_index = condition_velocity_correlations[
+                idx
+            ][cell_id][0]
+
+            cell.ahv.ahv_pearson_r_first_half_neg = (
+                conditions_first[idx]
+                .cell_specific_stats[cell_id]
+                .ahv.ahv_pearson_r_neg
+            )
+            cell.ahv.ahv_pearson_r_first_half_pos = (
+                conditions_first[idx]
+                .cell_specific_stats[cell_id]
+                .ahv.ahv_pearson_r_pos
+            )
+
+            cell.ahv.ahv_pearson_r_second_half_neg = (
+                conditions_last[idx]
+                .cell_specific_stats[cell_id]
+                .ahv.ahv_pearson_r_neg
+            )
+            cell.ahv.ahv_pearson_r_second_half_pos = (
+                conditions_last[idx]
+                .cell_specific_stats[cell_id]
+                .ahv.ahv_pearson_r_pos
+            )
+
+            cell.ahv.ahv_r_percentile_first_half_neg = (
+                conditions_first[idx]
+                .cell_specific_stats[cell_id]
+                .ahv.pearson_neg_percentile
+            )
+            cell.ahv.ahv_r_percentile_first_half_pos = (
+                conditions_first[idx]
+                .cell_specific_stats[cell_id]
+                .ahv.pearson_pos_percentile
+            )
+
+            cell.ahv.ahv_r_percentile_second_half_neg = (
+                conditions_last[idx]
+                .cell_specific_stats[cell_id]
+                .ahv.pearson_neg_percentile
+            )
+            cell.ahv.ahv_r_percentile_second_half_pos = (
+                conditions_last[idx]
+                .cell_specific_stats[cell_id]
+                .ahv.pearson_pos_percentile
+            )
+
+            # velocity
+            cell.velocity.velocity_stability_index = condition_ahv_correlations[
+                idx
+            ][
+                cell_id
+            ][
+                0
+            ]
+
+            cell.velocity.velocity_r_percentile_first_half = (
+                conditions_first[idx]
+                .cell_specific_stats[cell_id]
+                .velocity.pearson_percentile
+            )
+            cell.velocity.velocity_r_percentile_second_half = (
+                conditions_last[idx]
+                .cell_specific_stats[cell_id]
+                .velocity.pearson_percentile
+            )
+
+            cell.velocity.velocity_pearson_r_first_half = (
+                conditions_first[idx]
+                .cell_specific_stats[cell_id]
+                .velocity.velocity_pearson_r
+            )
+
+            cell.velocity.velocity_pearson_r_second_half = (
+                conditions_last[idx]
+                .cell_specific_stats[cell_id]
+                .velocity.velocity_pearson_r
+            )
+
+    return conditions
 
 
 if __name__ == "__main__":

@@ -6,10 +6,14 @@ from pathlib import Path
 from datetime import datetime
 
 import opendirection.run.run as run
+from opendirection.main import run_stability_analyses
 
 
 def run_analysis_single_bin(args, options, config):
     conditions, total_df = run.analysis(args, options, config)
+    if options.stability:
+        conditions = run_stability_analyses(args, options, config, conditions)
+
     results_df = {}
     for condition in conditions:
         results_df[condition.name] = run.save(condition, args.output_dir)
