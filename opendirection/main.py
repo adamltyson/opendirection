@@ -19,7 +19,9 @@ def main():
     conditions, total_df = run.analysis(args, options, config)
 
     if options.stability:
-        conditions = run_stability_analyses(args, options, config, conditions)
+        conditions, _, _ = run_stability_analyses(
+            args, options, config, conditions
+        )
 
     if args.save:
         save_dfs = {}
@@ -66,10 +68,16 @@ def run_stability_analyses(args, options, config, conditions):
     logging.info("Running analysis on second half of each condition")
     conditions_last, _ = run.analysis(args, options, config, stability="last")
 
-    conditions = add_stability_indices(
-        conditions, conditions_first, conditions_last
+    (
+        conditions,
+        condition_r_velocity_distributions,
+        condition_r_ahv_distributions,
+    ) = add_stability_indices(conditions, conditions_first, conditions_last)
+    return (
+        conditions,
+        condition_r_velocity_distributions,
+        condition_r_ahv_distributions,
     )
-    return conditions
 
 
 def stability_calcs(conditions_first, conditions_last):
@@ -276,7 +284,11 @@ def add_stability_indices(conditions, conditions_first, conditions_last):
                 cell_id
             ]
 
-    return conditions
+    return (
+        conditions,
+        condition_r_velocity_distributions,
+        condition_r_ahv_distributions,
+    )
 
 
 if __name__ == "__main__":

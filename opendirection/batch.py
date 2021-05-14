@@ -12,21 +12,49 @@ from opendirection.main import run_stability_analyses
 def run_analysis_single_bin(args, options, config):
     conditions, total_df = run.analysis(args, options, config)
     if options.stability:
-        conditions = run_stability_analyses(args, options, config, conditions)
+        (
+            conditions,
+            condition_r_velocity_distributions,
+            condition_r_ahv_distributions,
+        ) = run_stability_analyses(args, options, config, conditions)
+        null_correlation_distributions = [
+            condition_r_velocity_distributions,
+            condition_r_ahv_distributions,
+        ]
+    else:
+        null_correlation_distributions = []
 
     results_df = {}
     for condition in conditions:
         results_df[condition.name] = run.save(condition, args.output_dir)
 
-    return results_df, conditions
+    return results_df, conditions, null_correlation_distributions
 
 
-def export(options, args, ang_vel_bin_sizes, conditions, results_dfs):
+def export(
+    options,
+    args,
+    ang_vel_bin_sizes,
+    conditions,
+    results_dfs,
+    null_correlations,
+):
     output = {}
     output["AHV_max_magnitude"] = options.max_ahv
     output["AHV_bin_size"] = ang_vel_bin_sizes
     output["experiment_name"] = args.experiment_name
     output["cell_data"] = []
+
+    output["null_correlations"] = null_correlations
+    output["null_correlation_README"] = (
+        "Null correlations are the pearson R values\n"
+        "of the shuffled null correlations.\n"
+        "It is a list of length 2, for the two AHV bin sizes.\n"
+        "Each of those lists is a list of length 2, for velocity and AHV.\n"
+        "Each of those lists is a list of length N for the N conditons.\n"
+        "In those lists, is a list of M cells, each with X values for R, \n"
+        "where X is the number of shuffle (shift) iterations. "
+    )
     tmp_output = {}
     for i, ang_vel_bin_size in enumerate(ang_vel_bin_sizes):
         for condition in conditions[i]:
@@ -54,16 +82,26 @@ def main():
     ang_vel_bin_sizes = [5.0, 10.0]
     results_dfs = []
     conditions = []
+    null_correlations = []
     for ang_vel_bin_size in ang_vel_bin_sizes:
         options.ang_vel_bin_size = ang_vel_bin_size
-        results_df_bin, conditions_bin = run_analysis_single_bin(
-            args, options, config
-        )
+        (
+            results_df_bin,
+            conditions_bin,
+            null_correlation_distributions,
+        ) = run_analysis_single_bin(args, options, config)
         results_dfs.append(results_df_bin)
         conditions.append(conditions_bin)
-
+        null_correlations.append(null_correlation_distributions)
     logging.info("Exporting")
-    export(options, args, ang_vel_bin_sizes, conditions, results_dfs)
+    export(
+        options,
+        args,
+        ang_vel_bin_sizes,
+        conditions,
+        results_dfs,
+        null_correlations,
+    )
 
     logging.info(
         "Finished calculations. Total time taken: %s",
