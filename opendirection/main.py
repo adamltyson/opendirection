@@ -2,6 +2,7 @@ import logging
 import os.path
 import matplotlib.pyplot as plt
 import scipy.stats as stats
+import numpy as np
 
 from pathlib import Path
 from datetime import datetime
@@ -75,44 +76,108 @@ def stability_calcs(conditions_first, conditions_last):
     condition_velocity_correlations = []
     condition_ahv_correlations = []
 
+    condition_r_velocity_distributions = []
+    condition_r_ahv_distributions = []
+
+    condition_velocity_null_percentiles = []
+    condition_ahv_null_percentiles = []
+
     for idx, condition in enumerate(conditions_first):
 
         velocity_correlations = []
         ahv_correlations = []
 
+        r_velocity_distributions = []
+        r_ahv_distributions = []
+
+        velocity_null_percentiles = []
+        ahv_null_percentiles = []
         for cell_id, cell in enumerate(condition.cell_list):
-            velocity_correlations.append(
-                stats.pearsonr(
-                    conditions_first[
-                        idx
-                    ].cell_specific_data.velocity_cell_spikes_freq[cell_id],
-                    conditions_last[
-                        idx
-                    ].cell_specific_data.velocity_cell_spikes_freq[cell_id],
-                )
+            _r_velocity_distributions = correlate_null_distributions(
+                conditions_first[idx]
+                .cell_specific_stats[cell_id]
+                .velocity._VelocityStats__shuffled_binned_data,
+                conditions_last[idx]
+                .cell_specific_stats[cell_id]
+                .velocity._VelocityStats__shuffled_binned_data,
             )
 
-            ahv_correlations.append(
-                stats.pearsonr(
-                    conditions_first[
-                        idx
-                    ].cell_specific_data.ahv_cell_spikes_freq[cell_id],
-                    conditions_last[
-                        idx
-                    ].cell_specific_data.ahv_cell_spikes_freq[cell_id],
-                )
+            r, p = stats.pearsonr(
+                conditions_first[
+                    idx
+                ].cell_specific_data.velocity_cell_spikes_freq[cell_id],
+                conditions_last[
+                    idx
+                ].cell_specific_data.velocity_cell_spikes_freq[cell_id],
             )
+
+            velocity_correlations.append((r, p))
+            velocity_null_percentile = stats.percentileofscore(
+                abs(_r_velocity_distributions), abs(r)
+            )
+            velocity_null_percentiles.append(velocity_null_percentile)
+            r_velocity_distributions.append(_r_velocity_distributions)
+
+            _r_ahv_distributions = correlate_null_distributions(
+                conditions_first[idx]
+                .cell_specific_stats[cell_id]
+                .ahv._AHVStats__shuffled_binned_data,
+                conditions_last[idx]
+                .cell_specific_stats[cell_id]
+                .ahv._AHVStats__shuffled_binned_data,
+            )
+
+            r, p = stats.pearsonr(
+                conditions_first[idx].cell_specific_data.ahv_cell_spikes_freq[
+                    cell_id
+                ],
+                conditions_last[idx].cell_specific_data.ahv_cell_spikes_freq[
+                    cell_id
+                ],
+            )
+
+            ahv_correlations.append((r, p))
+            ahv_null_percentile = stats.percentileofscore(
+                abs(_r_ahv_distributions), abs(r)
+            )
+            ahv_null_percentiles.append(ahv_null_percentile)
+            r_ahv_distributions.append(_r_ahv_distributions)
 
         condition_velocity_correlations.append(velocity_correlations)
         condition_ahv_correlations.append(ahv_correlations)
 
-    return condition_velocity_correlations, condition_ahv_correlations
+        condition_r_velocity_distributions.append(r_velocity_distributions)
+        condition_r_ahv_distributions.append(r_ahv_distributions)
+
+        condition_velocity_null_percentiles.append(velocity_null_percentiles)
+        condition_ahv_null_percentiles.append(ahv_null_percentiles)
+    return (
+        condition_velocity_correlations,
+        condition_ahv_correlations,
+        condition_velocity_null_percentiles,
+        condition_ahv_null_percentiles,
+        condition_r_velocity_distributions,
+        condition_r_ahv_distributions,
+    )
+
+
+def correlate_null_distributions(
+    shuffled_tunings_first, shuffled_tunings_last
+):
+    r_values = []
+    for first, last in zip(shuffled_tunings_first, shuffled_tunings_last):
+        r_values.append(stats.pearsonr(first, last)[0])
+    return np.array(r_values)
 
 
 def add_stability_indices(conditions, conditions_first, conditions_last):
     (
         condition_velocity_correlations,
         condition_ahv_correlations,
+        condition_velocity_null_percentiles,
+        condition_ahv_null_percentiles,
+        condition_r_velocity_distributions,
+        condition_r_ahv_distributions,
     ) = stability_calcs(conditions_first, conditions_last)
 
     for idx, condition in enumerate(conditions):
@@ -167,6 +232,12 @@ def add_stability_indices(conditions, conditions_first, conditions_last):
                 .ahv.pearson_pos_percentile
             )
 
+            cell.ahv.ahv_null_correlation_percentile = condition_ahv_null_percentiles[
+                idx
+            ][
+                cell_id
+            ]
+
             # velocity
             cell.velocity.velocity_stability_index = condition_ahv_correlations[
                 idx
@@ -198,6 +269,12 @@ def add_stability_indices(conditions, conditions_first, conditions_last):
                 .cell_specific_stats[cell_id]
                 .velocity.velocity_pearson_r
             )
+
+            cell.velocity.velocity_null_correlation_percentile = condition_velocity_null_percentiles[
+                idx
+            ][
+                cell_id
+            ]
 
     return conditions
 

@@ -351,6 +351,9 @@ class AHVStats:
         self.ahv_pearson_r_first_half_pos = []
         self.ahv_pearson_r_second_half_neg = []
         self.ahv_pearson_r_second_half_pos = []
+        self.ahv_null_correlation_percentile = []
+
+        self.__shuffled_binned_data = []
 
         idx = get_idx(cell_specific_data, cell_name)
 
@@ -451,6 +454,7 @@ class AHVStats:
         (
             self.pearson_neg_percentile,
             self.pearson_pos_percentile,
+            self.__shuffled_binned_data,
         ) = stats_tools.is_ahv_cell_sig(
             self.ahv_pearson_r_neg,
             self.ahv_pearson_r_pos,
@@ -484,7 +488,9 @@ class VelocityStats:
         self.velocity_r_percentile_second_half = []
         self.velocity_pearson_r_first_half = []
         self.velocity_pearson_r_second_half = []
+        self.velocity_null_correlation_percentile = []
 
+        self.__shuffled_binned_data = []
         idx = get_idx(cell_specific_data, cell_name)
 
         self.get_correlations(idx, cell_specific_data)
@@ -528,7 +534,10 @@ class VelocityStats:
         spike_train = df[cell_name]
         velocity_vals_timecourse = df[query]
 
-        self.pearson_percentile = stats_tools.is_velocity_cell_sig(
+        (
+            self.pearson_percentile,
+            self.__shuffled_binned_data,
+        ) = stats_tools.is_velocity_cell_sig(
             self.velocity_pearson_r,
             all_cells.velocity_centers_in_range,
             spike_train,

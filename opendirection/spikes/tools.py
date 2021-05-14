@@ -250,11 +250,12 @@ def get_correlations(
         pearson_r_pos, _ = stats.pearsonr(x_pos, y_pos)
 
         pearson = pearson_r_neg, pearson_r_pos
+        shuffled_data = np.concatenate((y_neg, y_pos), axis=None)
 
     else:
         pearson, _ = stats.pearsonr(bin_centers, spike_freq)
-
-    return pearson
+        shuffled_data = spike_freq
+    return pearson, shuffled_data
 
 
 def place_peak_response(

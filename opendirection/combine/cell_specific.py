@@ -29,11 +29,13 @@ class CellSpecific:
         self.ahv_cell_spikes_freq = []
         self.ahv_centers_in_range = []  # bin centers
         self.ahv_bin_times_in_range = []
+        self.ahv_shuffled_binned_data = []
 
         self.velocity_cell_spikes_freq = []
         self.velocity_centers_in_range = []
         self.velocity_bin_times_in_range = []
         self.velocity_hist_centers = []
+        self.velocity_shuffled_binned_data = []
 
         self.place_cell_spikes_freq = []
 
