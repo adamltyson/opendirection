@@ -84,7 +84,7 @@ def load_align_data(args, options, config):
     return total_df
 
 
-def analysis(args, options, config, stability=None):
+def analysis(args, options, config, stability=None, cell_list=None):
 
     total_df = load_align_data(args, options, config)
 
@@ -96,11 +96,16 @@ def analysis(args, options, config, stability=None):
         for condition in options.conditions_list
     ]
 
-    # Combine cell lists if necessary
-    if options.cell_condition_inclusion in ["all", "any"]:
-        conditions = condition_select.cell_list_combine(
-            conditions, options.cell_condition_inclusion
-        )
+    if cell_list is not None:
+        for condition in conditions:
+            condition.cell_list = cell_list
+
+    else:
+        # Combine cell lists if necessary
+        if options.cell_condition_inclusion in ["all", "any"]:
+            conditions = condition_select.cell_list_combine(
+                conditions, options.cell_condition_inclusion
+            )
 
     # Calculate remaining parameters based on new cell lists
     for condition in conditions:

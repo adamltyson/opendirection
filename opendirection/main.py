@@ -61,12 +61,24 @@ def main():
 
 def run_stability_analyses(args, options, config, conditions):
     logging.info("Running analysis on first half of each condition")
+
+    # cell list is the same for all conditions
     conditions_first, _ = run.analysis(
-        args, options, config, stability="first"
+        args,
+        options,
+        config,
+        stability="first",
+        cell_list=conditions[0].cell_list,
     )
 
     logging.info("Running analysis on second half of each condition")
-    conditions_last, _ = run.analysis(args, options, config, stability="last")
+    conditions_last, _ = run.analysis(
+        args,
+        options,
+        config,
+        stability="last",
+        cell_list=conditions[0].cell_list,
+    )
 
     (
         conditions,
