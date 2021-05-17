@@ -110,13 +110,29 @@ def stability_calcs(conditions_first, conditions_last):
                 .velocity._VelocityStats__shuffled_binned_data,
             )
 
+            min_length = min(
+                len(
+                    conditions_first[
+                        idx
+                    ].cell_specific_data.velocity_cell_spikes_freq[cell_id]
+                ),
+                len(
+                    conditions_last[
+                        idx
+                    ].cell_specific_data.velocity_cell_spikes_freq[cell_id]
+                ),
+            )
             r, p = stats.pearsonr(
                 conditions_first[
                     idx
-                ].cell_specific_data.velocity_cell_spikes_freq[cell_id],
+                ].cell_specific_data.velocity_cell_spikes_freq[cell_id][
+                    :min_length
+                ],
                 conditions_last[
                     idx
-                ].cell_specific_data.velocity_cell_spikes_freq[cell_id],
+                ].cell_specific_data.velocity_cell_spikes_freq[cell_id][
+                    :min_length
+                ],
             )
 
             velocity_correlations.append((r, p))
@@ -174,7 +190,10 @@ def correlate_null_distributions(
 ):
     r_values = []
     for first, last in zip(shuffled_tunings_first, shuffled_tunings_last):
-        r_values.append(stats.pearsonr(first, last)[0])
+        min_length = min(len(first), len(last))
+        r_values.append(
+            stats.pearsonr(first[:min_length], last[:min_length])[0]
+        )
     return np.array(r_values)
 
 
