@@ -16,7 +16,7 @@ requirements = [
     "fancylog >= 0.0.8",
     "movement",
     "spikey >= 0.0.5",
-    "vedo"
+    "vedo",
 ]
 
 

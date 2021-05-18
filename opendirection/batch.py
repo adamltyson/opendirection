@@ -26,7 +26,11 @@ def run_analysis_single_bin(args, options, config):
 
     results_df = {}
     for condition in conditions:
-        results_df[condition.name] = run.save(condition, args.output_dir)
+        results_df[condition.name] = run.save(
+            condition,
+            args.output_dir,
+            suffix=f"_AHV_{options.ang_vel_bin_size}.csv",
+        )
 
     return results_df, conditions, null_correlation_distributions
 
