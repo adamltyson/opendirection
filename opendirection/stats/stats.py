@@ -167,6 +167,11 @@ class HeadDirectionStats:
             & (df["absolute_head_angle"] < max_angle)
         ]
         num_spikes = spikes_in_ang_range.sum()
+        if num_spikes == 0:
+            raise RuntimeError(
+                "No spikes are found within the HD baseline "
+                "bin. Try increasing the HD baseline bin size."
+            )
         time_in_range = len(spikes_in_ang_range) / config.camera_frames_per_sec
         self.hd_background_hz = num_spikes / time_in_range
 
@@ -224,6 +229,8 @@ class HeadDirectionStats:
         self.hd_background_hz = np.mean(k_smallest)
 
     def get_snr(self,):
+        if self.cell_name == "cell_194":
+            a = 1
         self.hd_snr = float(
             float(self.hd_peak_hz) / float(self.hd_background_hz)
         )
