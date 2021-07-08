@@ -342,6 +342,18 @@ class AHVStats:
         self.ahv_fit_slope_pos = []
         self.pearson_neg_percentile = []
         self.pearson_pos_percentile = []
+        self.ahv_stability_index = []
+        self.ahv_r_percentile_first_half_neg = []
+        self.ahv_r_percentile_first_half_pos = []
+        self.ahv_r_percentile_second_half_neg = []
+        self.ahv_r_percentile_second_half_pos = []
+        self.ahv_pearson_r_first_half_neg = []
+        self.ahv_pearson_r_first_half_pos = []
+        self.ahv_pearson_r_second_half_neg = []
+        self.ahv_pearson_r_second_half_pos = []
+        self.ahv_null_correlation_percentile = []
+
+        self.__shuffled_binned_data = []
 
         idx = get_idx(cell_specific_data, cell_name)
 
@@ -442,6 +454,7 @@ class AHVStats:
         (
             self.pearson_neg_percentile,
             self.pearson_pos_percentile,
+            self.__shuffled_binned_data,
         ) = stats_tools.is_ahv_cell_sig(
             self.ahv_pearson_r_neg,
             self.ahv_pearson_r_pos,
@@ -470,7 +483,14 @@ class VelocityStats:
         self.pearson_percentile = []
         self.velocity_fit_intercept = []
         self.velocity_fit_slope = []
+        self.velocity_stability_index = []
+        self.velocity_r_percentile_first_half = []
+        self.velocity_r_percentile_second_half = []
+        self.velocity_pearson_r_first_half = []
+        self.velocity_pearson_r_second_half = []
+        self.velocity_null_correlation_percentile = []
 
+        self.__shuffled_binned_data = []
         idx = get_idx(cell_specific_data, cell_name)
 
         self.get_correlations(idx, cell_specific_data)
@@ -496,7 +516,6 @@ class VelocityStats:
             all_cells.velocity_cell_spikes_freq[idx],
         )
 
-
     def get_velocity_cell_sig(
         self,
         all_cells,
@@ -515,7 +534,10 @@ class VelocityStats:
         spike_train = df[cell_name]
         velocity_vals_timecourse = df[query]
 
-        self.pearson_percentile = stats_tools.is_velocity_cell_sig(
+        (
+            self.pearson_percentile,
+            self.__shuffled_binned_data,
+        ) = stats_tools.is_velocity_cell_sig(
             self.velocity_pearson_r,
             all_cells.velocity_centers_in_range,
             spike_train,
@@ -530,10 +552,12 @@ class VelocityStats:
             correlation_mag_force=correlation_mag_force,
         )
 
-    def get_fit(self,idx, all_cells, degree=1):
-        coef = np.polyfit(all_cells.velocity_centers_in_range,
-                          all_cells.velocity_cell_spikes_freq[idx],
-                          degree)
+    def get_fit(self, idx, all_cells, degree=1):
+        coef = np.polyfit(
+            all_cells.velocity_centers_in_range,
+            all_cells.velocity_cell_spikes_freq[idx],
+            degree,
+        )
 
         self.velocity_fit_intercept = coef[1]
         self.velocity_fit_slope = coef[0]

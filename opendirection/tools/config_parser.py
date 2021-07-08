@@ -13,6 +13,7 @@ class GetOptions:
 
         self.parallel = False
         self.n_free_cpus = 6
+        self.stability = False
 
         self.conditions_list = []
         self.cell_condition_inclusion = "individual"
@@ -124,6 +125,7 @@ class GetOptions:
     def general_parse(self, config):
         self.n_free_cpus = int(config["GENERAL"]["N_FREE_CPUS"])
         self.parallel = config["GENERAL"].getboolean("PARALLEL")
+        self.stability = config["GENERAL"].getboolean("STABILITY")
 
     def condition_option_parse(self, config):
         self.conditions_list = config.get(

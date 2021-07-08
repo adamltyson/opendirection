@@ -173,6 +173,8 @@ parallel ('yes'/'no')
 
 N_FREE_CPUS: How many CPU cores to leave free for other programs (e.g 6)
 
+STABILITY: Run stability calcs (comparing first and second half of each 
+condition ) ('yes'/'no')
 #### CONDITIONS
 **Conditions refer to (temporal) parts of the experiment that should be 
 treated individually. Defined in options/conditions.ini**

@@ -7,7 +7,9 @@ class ConditionError(Exception):
     pass
 
 
-def condition_select(df, all_conditions, chosen_condition, column="condition"):
+def condition_select(
+    df, all_conditions, chosen_condition, column="condition", stability=None
+):
     """
     Takes a dataframe, and returns rows based on the conditions in the given
     'column'. If a specific chosen_condition is given, only those rows are
@@ -19,6 +21,8 @@ def condition_select(df, all_conditions, chosen_condition, column="condition"):
     :param chosen_condition: Selected condition, or 'all_conditions' or
     'all_data'
     :param str column: Condition column heading. Default: 'condition'
+    :param str stability: If None, return full df. If "first", return the first
+    half. If "last", return the second half.
     :return: Dataframe with only the rows corresponding to 'chosen_condition'
     """
     logging.info("Selecting behavioural conditions")
@@ -54,7 +58,12 @@ def condition_select(df, all_conditions, chosen_condition, column="condition"):
                 chosen_condition
             )
         )
-    return df
+    if stability == "first":
+        return df.iloc[: len(df) // 2]
+    elif stability == "last":
+        return df.iloc[len(df) // 2 :]
+    else:
+        return df
 
 
 def add_conditions(df, config):

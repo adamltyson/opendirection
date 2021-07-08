@@ -254,6 +254,7 @@ def is_ahv_cell_sig(
     correlation_mag_force=True,
     parallel=False,
 ):
+    shuffled_binned_data = []
 
     parallel = sanitize_num_processes(
         num_processes, MIN_PROCESSES, parallel=parallel
@@ -293,7 +294,6 @@ def is_ahv_cell_sig(
 
         pearson_r_neg = np.empty(num_iterations)
         pearson_r_pos = np.empty(num_iterations)
-
         for iteration in range(0, num_iterations):
             logging.debug("Iteration: " + str(iteration))
             rand_shuffle = apply_random_sign(
@@ -301,8 +301,8 @@ def is_ahv_cell_sig(
             )
             spikes_shuffled = np.roll(spike_train, rand_shuffle)
             (
-                pearson_r_neg[iteration],
-                pearson_r_pos[iteration],
+                (pearson_r_neg[iteration], pearson_r_pos[iteration]),
+                _shuffled_binned_data,
             ) = spike_tools.get_correlations(
                 spikes_shuffled,
                 bin_centers,
@@ -310,7 +310,7 @@ def is_ahv_cell_sig(
                 bin_times_in_range,
                 pos_neg_separate=True,
             )
-
+            shuffled_binned_data.append(_shuffled_binned_data)
     # if only care about magnitude of correlation
     if correlation_mag_force:
         pearson_r_neg = abs(pearson_r_neg)
@@ -322,7 +322,7 @@ def is_ahv_cell_sig(
     real_percentile_neg = percentileofscore(pearson_r_neg, pearson_r_neg_real)
     real_percentile_pos = percentileofscore(pearson_r_pos, pearson_r_pos_real)
 
-    return real_percentile_neg, real_percentile_pos
+    return real_percentile_neg, real_percentile_pos, shuffled_binned_data
 
 
 def ahv_shuffle_parallel(
@@ -341,7 +341,7 @@ def ahv_shuffle_parallel(
         spikes_shuffled = np.roll(
             spike_train, apply_random_sign(shuffle_dists[i])
         )
-        r_neg, r_pos = spike_tools.get_correlations(
+        (r_neg, r_pos), shuffled_binned_data = spike_tools.get_correlations(
             spikes_shuffled,
             bin_centers,
             ahv_vals_timecourse,
@@ -370,7 +370,7 @@ def is_velocity_cell_sig(
     parallel=False,
     correlation_mag_force=False,
 ):
-
+    shuffled_binned_data = []
     parallel = sanitize_num_processes(
         num_processes, MIN_PROCESSES, parallel=parallel
     )
@@ -412,20 +412,23 @@ def is_velocity_cell_sig(
                 np.random.randint(min_shuffle_dist, high=max_shuffle_dist)
             )
             spikes_shuffled = np.roll(spike_train, rand_shuffle)
-            pearson[iteration] = spike_tools.get_correlations(
+            (
+                pearson[iteration],
+                _shuffled_binned_data,
+            ) = spike_tools.get_correlations(
                 spikes_shuffled,
                 bin_centers,
                 velocity_vals_timecourse,
                 bin_times_in_range,
                 sanitise_values=True,
             )
-
+            shuffled_binned_data.append(_shuffled_binned_data)
     if correlation_mag_force:
         pearson = abs(pearson)
         pearson_real = abs(pearson_real)
     real_percentile_val = percentileofscore(pearson, pearson_real)
 
-    return real_percentile_val
+    return real_percentile_val, shuffled_binned_data
 
 
 def velocity_shuffle_parallel(
@@ -443,7 +446,7 @@ def velocity_shuffle_parallel(
         spikes_shuffled = np.roll(
             spike_train, apply_random_sign(shuffle_dists[i])
         )
-        r = spike_tools.get_correlations(
+        r, shuffled_binned_data = spike_tools.get_correlations(
             spikes_shuffled,
             bin_centers,
             vals_timecourse,
